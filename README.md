@@ -15,9 +15,16 @@ single Vercel serverless function.
 
 ```bash
 npm install
-cp .env.example .env
-# paste your Neon connection string into DATABASE_URL in .env
-# set JWT_SECRET to a long random string:  openssl rand -hex 32
+```
+
+Create a file named `.env` in the project root (it is git-ignored) containing:
+
+```bash
+DATABASE_URL=postgresql://...   # Neon connection string (pooled)
+JWT_SECRET=...                  # long random string: openssl rand -hex 32
+PORT=4000                       # optional, defaults to 4000
+RESEND_API_KEY=                 # optional: emails password-reset codes (see below)
+MAIL_FROM=ME2 <no-reply@your-domain.com>
 ```
 
 ## 3. Create the tables (schema → migration, before any API work)
@@ -83,6 +90,15 @@ Set `timezone` to your IANA zone (default `Asia/Kolkata`).
 | POST   | `/auth/login`   | `{email, password}` → `{user, token}`       |
 | POST   | `/auth/logout`  | → `{}` (tokens are stateless; client drops its token) |
 | GET    | `/auth/me`      | → `{user}` (session restore)                |
+| PUT    | `/auth/change-password`  | Bearer. `{currentPassword, newPassword}` → `{}` |
+| POST   | `/auth/forgot-password`  | `{email}` → `{}`; emails a 6-digit code         |
+| POST   | `/auth/verify-otp`       | `{email, otp}` → `{resetToken}`                 |
+| POST   | `/auth/reset-password`   | `{resetToken, newPassword}` → `{}`; signs out all sessions |
+
+The forgot-password flow is described in `docs/PASSWORD_APIS_HANDOFF.md`. To
+actually send the code by email set `RESEND_API_KEY` and `MAIL_FROM` in `.env`
+(and in Vercel); without them the code is printed to the console in
+development and **not sent** in production.
 
 ### Routines
 
@@ -159,7 +175,10 @@ scheduled day with nothing logged counts as `Missed` in history.
   `GET /interventions` checks the user's history and stores any newly
   triggered ones (with a 3-day cooldown per trigger).
 - Passwords are hashed with scrypt; tokens are HS256 JWTs signed with
-  `JWT_SECRET`. There is no rate limiting on login yet.
+  `JWT_SECRET`. There is no rate limiting on login yet (reset codes *are*
+  limited to 5 attempts).
+- A password reset stamps `users.password_changed_at`; login tokens issued
+  before it are rejected, which is why `requireAuth` reads the user row.
 - Expense categories are free text (the app allows custom ones), so
   `transactions.category` / `category_budgets.category` are varchar, not an enum.
 - `user_id` is nullable on the finance/reminders tables only because they

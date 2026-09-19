@@ -15,6 +15,13 @@
       "when": 1789827648087,
       "tag": "0001_smooth_talkback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789842113373,
+      "tag": "0002_oval_night_nurse",
+      "breakpoints": true
     }
   ]
 }

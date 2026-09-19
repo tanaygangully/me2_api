@@ -76,6 +76,8 @@ export const users = pgTable('users', {
   name: varchar('name', { length: 120 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(), // stored lowercased
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  // Set when the password is reset; login tokens issued before this are rejected.
+  passwordChangedAt: timestamp('password_changed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -281,3 +283,19 @@ export const driftDismissals = pgTable(
     userSignalUnique: unique().on(table.userId, table.signalId),
   })
 );
+
+// ---------------------------------------------------------------------------
+// Password reset (forgot-password → verify-otp → reset-password)
+//
+// At most one pending reset per user: requesting a new code replaces the old
+// row. The OTP itself is never stored, only an HMAC of it.
+// ---------------------------------------------------------------------------
+
+export const passwordResets = pgTable('password_resets', {
+  id: serial('id').primaryKey(),
+  userId: userRef().notNull().unique(),
+  otpHash: varchar('otp_hash', { length: 64 }).notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

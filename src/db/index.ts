@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema.js';
 
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set. Copy .env.example to .env and fill it in.');
+  throw new Error('DATABASE_URL is not set. Add it to .env.');
 }
 
 // The neon-http driver makes a plain HTTP request per query instead of
