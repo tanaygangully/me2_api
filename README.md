@@ -52,6 +52,13 @@ project settings (same values as your `.env`). `vercel.json` routes every reques
 into the one serverless function in `api/index.ts`, which wraps the same
 Express app you ran locally.
 
+## Postman
+
+Import `postman/me2-server.postman_collection.json` (Postman → Import). Set the
+`baseUrl` variable if you're not on `http://localhost:4000`, run **Auth → Sign up**
+or **Log in**, and the token and record ids are saved for the rest of the requests.
+Set `timezone` to your IANA zone (default `Asia/Kolkata`).
+
 ## Conventions
 
 - **Auth.** Everything except `/health` and `/auth/signup|login|logout` needs

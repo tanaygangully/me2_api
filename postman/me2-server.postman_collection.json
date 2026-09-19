@@ -1,0 +1,1871 @@
+{
+  "info": {
+    "name": "me2-server",
+    "description": "API for the Me app.\n\nSetup: set the `baseUrl` collection variable (default http://localhost:4000), then run **Auth → Sign up** (or **Log in**). The returned token is saved automatically and sent as a Bearer token on every other request; ids from create/list requests are saved too, so the {{routineId}}-style URLs work as you go.\n\nSet `timezone` to your IANA zone — it is sent as the X-Timezone header so \"today\" is computed correctly.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Send the caller's timezone so \"today\" is decided in it, not the server's (UTC).",
+          "const tz = pm.collectionVariables.get('timezone') || 'UTC';",
+          "pm.request.headers.upsert({ key: 'X-Timezone', value: tz });",
+          "// {{today}} (YYYY-MM-DD in that timezone) for request bodies.",
+          "pm.collectionVariables.set('today', new Date().toLocaleDateString('en-CA', { timeZone: tz }));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "timezone",
+      "value": "Asia/Kolkata"
+    },
+    {
+      "key": "today",
+      "value": ""
+    },
+    {
+      "key": "category",
+      "value": "Food"
+    },
+    {
+      "key": "routineId",
+      "value": ""
+    },
+    {
+      "key": "reminderId",
+      "value": ""
+    },
+    {
+      "key": "goalId",
+      "value": ""
+    },
+    {
+      "key": "vaultId",
+      "value": ""
+    },
+    {
+      "key": "reflectionId",
+      "value": ""
+    },
+    {
+      "key": "interventionId",
+      "value": ""
+    },
+    {
+      "key": "driftSignalId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": ""
+    },
+    {
+      "key": "customCategoryId",
+      "value": ""
+    },
+    {
+      "key": "savingsGoalId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tanay\",\n  \"email\": \"tanay@example.com\",\n  \"password\": \"a-long-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Creates an account and saves the returned token into the {{token}} variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.token) pm.collectionVariables.set('token', j.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tanay@example.com\",\n  \"password\": \"a-long-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Saves the returned token into the {{token}} variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.token) pm.collectionVariables.set('token', j.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Log out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Tokens are stateless, so this just returns {}; signing out means the app discards its token. (This request deliberately leaves {{token}} alone so the rest of the collection keeps working.)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Routines",
+      "item": [
+        {
+          "name": "List routines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('routineId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create routine",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wake + Hydrate\",\n  \"scheduledTime\": \"06:00\",\n  \"category\": \"Morning\",\n  \"frequency\": \"Daily\",\n  \"priority\": \"High\",\n  \"expectedDurationMinutes\": 10,\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "category: Morning | Work | Study | Health & Fitness | Evening | Reflection\nfrequency: Daily | Weekdays | Weekends | Weekly | Custom\npriority: Low | Medium | High"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const v = pm.response.json().id;",
+                  "  if (v !== undefined) pm.collectionVariables.set('routineId', v);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get routine",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update routine",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wake early\",\n  \"scheduledTime\": \"05:45\",\n  \"priority\": \"Medium\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send any subset of the fields."
+          }
+        },
+        {
+          "name": "Toggle routine",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}/toggle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}",
+                "toggle"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mark completed",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}",
+                "complete"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark delayed",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}/delay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}",
+                "delay"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Skip today",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}/skip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}",
+                "skip"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete routine",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routines/{{routineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routines",
+                "{{routineId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reminders",
+      "item": [
+        {
+          "name": "List reminders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reminders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('reminderId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create reminder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reminders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"routineName\": \"Deep Work Block\",\n  \"type\": \"Pre-Action\",\n  \"time\": \"08:50\",\n  \"leadMinutes\": 10,\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "type: Routine | Pre-Action | Missed Alert. leadMinutes is optional."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const v = pm.response.json().id;",
+                  "  if (v !== undefined) pm.collectionVariables.set('reminderId', v);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get reminder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/{{reminderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders",
+                "{{reminderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update reminder",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/{{reminderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders",
+                "{{reminderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"time\": \"08:45\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send any subset of the fields."
+          }
+        },
+        {
+          "name": "Toggle reminder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/{{reminderId}}/toggle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders",
+                "{{reminderId}}",
+                "toggle"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete reminder",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/{{reminderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reminders",
+                "{{reminderId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goals",
+      "item": [
+        {
+          "name": "List goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "goals"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('goalId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/goals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "goals"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Run a sub-25min 5K\",\n  \"description\": \"Build up aerobic base and consistent tempo runs.\",\n  \"category\": \"Health\",\n  \"targetDate\": \"2026-12-31\",\n  \"priority\": \"High\",\n  \"progress\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "category: Health | Skill | Career | Personal Growth\npriority: Low | Medium | High\nprogress: 0–100"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const v = pm.response.json().id;",
+                  "  if (v !== undefined) pm.collectionVariables.set('goalId', v);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get goal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "goals",
+                "{{goalId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update goal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "goals",
+                "{{goalId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progress\": 42\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send any subset of the fields."
+          }
+        },
+        {
+          "name": "Delete goal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "goals",
+                "{{goalId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Experience Vault",
+      "item": [
+        {
+          "name": "List vault entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vault-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vault-entries"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('vaultId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create vault entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vault-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vault-entries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Momentum beats motivation\",\n  \"observation\": \"I only skip workouts when I wait to \\\"feel like it\\\".\",\n  \"learning\": \"Motivation follows starting.\",\n  \"rule\": \"Put on gym clothes first, decide after.\",\n  \"date\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const v = pm.response.json().id;",
+                  "  if (v !== undefined) pm.collectionVariables.set('vaultId', v);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get vault entry",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vault-entries/{{vaultId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vault-entries",
+                "{{vaultId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update vault entry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vault-entries/{{vaultId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vault-entries",
+                "{{vaultId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rule\": \"Gym clothes on first.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send any subset of the fields."
+          }
+        },
+        {
+          "name": "Delete vault entry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vault-entries/{{vaultId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vault-entries",
+                "{{vaultId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reflections",
+      "item": [
+        {
+          "name": "List reflections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reflections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reflections"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('reflectionId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create reflection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reflections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reflections"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{today}}\",\n  \"wentWell\": \"Finished the deep work block on time.\",\n  \"mistakes\": \"Skipped the evening wind-down.\",\n  \"learned\": \"Screens before bed push my journal later.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const v = pm.response.json().id;",
+                  "  if (v !== undefined) pm.collectionVariables.set('reflectionId', v);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update reflection",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reflections/{{reflectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reflections",
+                "{{reflectionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"learned\": \"Prep the night before.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send any subset of the fields."
+          }
+        },
+        {
+          "name": "Delete reflection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reflections/{{reflectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reflections",
+                "{{reflectionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discipline & Insights",
+      "description": "Read-only screens, all derived from your routine history. A brand-new account returns empty/zero values until routines are logged.",
+      "item": [
+        {
+          "name": "Discipline score",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/discipline-score",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discipline-score"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Discipline history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/discipline-history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discipline-history"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Behavior patterns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/behavior-patterns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "behavior-patterns"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Weekly insight",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/insights/weekly",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "insights",
+                "weekly"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Drift signals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drift-signals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drift-signals"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('driftSignalId', encodeURIComponent(list[0].id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dismiss drift signal",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drift-signals/{{driftSignalId}}/dismiss",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drift-signals",
+                "{{driftSignalId}}",
+                "dismiss"
+              ]
+            },
+            "description": "Run \"Drift signals\" first — it saves the first signal id into {{driftSignalId}}. A new account has no signals yet (404 until there is drift to detect)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interventions",
+      "item": [
+        {
+          "name": "List active interventions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/interventions?resolved=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "interventions"
+              ],
+              "query": [
+                {
+                  "key": "resolved",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Also raises any newly triggered interventions. Remove the resolved param for all, or use true for handled ones."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) pm.collectionVariables.set('interventionId', list[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark as handled",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/interventions/{{interventionId}}/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "interventions",
+                "{{interventionId}}",
+                "resolve"
+              ]
+            },
+            "description": "Run \"List active interventions\" first — it saves the first id into {{interventionId}}. A new account has none yet (404 until routine history triggers one)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Transactions",
+          "item": [
+            {
+              "name": "List transactions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/transactions?category=Food&date={{today}}&from=2026-09-01&to=2026-09-30",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "transactions"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "Food",
+                      "disabled": true
+                    },
+                    {
+                      "key": "date",
+                      "value": "{{today}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-09-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-09-30",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "All query params are optional — enable the ones you want."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const list = pm.response.json();",
+                      "if (Array.isArray(list) && list.length) pm.collectionVariables.set('transactionId', list[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Add transaction",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/transactions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "transactions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Lunch\",\n  \"amount\": 180,\n  \"category\": \"Food\",\n  \"date\": \"{{today}}\",\n  \"time\": \"1:15 PM\",\n  \"paymentMethod\": \"Cash\",\n  \"paidForFriend\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "category is free text (built-in or custom). paymentMethod: Cash | Card | UPI."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if ([200,201].includes(pm.response.code)) {",
+                      "  const v = pm.response.json().id;",
+                      "  if (v !== undefined) pm.collectionVariables.set('transactionId', v);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get transaction",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/transactions/{{transactionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "transactions",
+                    "{{transactionId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update transaction",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/transactions/{{transactionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "transactions",
+                    "{{transactionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Send any subset of the fields."
+              }
+            },
+            {
+              "name": "Delete transaction",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/transactions/{{transactionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "transactions",
+                    "{{transactionId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Category budgets",
+          "item": [
+            {
+              "name": "List category budgets",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/category-budgets",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "category-budgets"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Set category budget",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/category-budgets/{{category}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "category-budgets",
+                    "{{category}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"budget\": 3000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Creates or updates. Change the {{category}} variable (URL-encode names with spaces/symbols)."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Custom categories",
+          "item": [
+            {
+              "name": "List custom categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/categories/custom",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "categories",
+                    "custom"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const list = pm.response.json();",
+                      "if (Array.isArray(list) && list.length) pm.collectionVariables.set('customCategoryId', list[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create custom category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/categories/custom",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "categories",
+                    "custom"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Gaming\",\n  \"color\": \"#7C3AED\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if ([200,201].includes(pm.response.code)) {",
+                      "  const v = pm.response.json().id;",
+                      "  if (v !== undefined) pm.collectionVariables.set('customCategoryId', v);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update custom category",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/categories/custom/{{customCategoryId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "categories",
+                    "custom",
+                    "{{customCategoryId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"color\": \"#111827\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Delete custom category",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/categories/custom/{{customCategoryId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "categories",
+                    "custom",
+                    "{{customCategoryId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Savings goals",
+          "item": [
+            {
+              "name": "List savings goals",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/savings-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "savings-goals"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const list = pm.response.json();",
+                      "if (Array.isArray(list) && list.length) pm.collectionVariables.set('savingsGoalId', list[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create savings goal",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/savings-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "savings-goals"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"MacBook Air Fund\",\n  \"icon\": \"laptop-outline\",\n  \"color\": \"#2C7BE0\",\n  \"targetAmount\": 120000,\n  \"savedAmount\": 0,\n  \"targetDate\": \"2026-12-31\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if ([200,201].includes(pm.response.code)) {",
+                      "  const v = pm.response.json().id;",
+                      "  if (v !== undefined) pm.collectionVariables.set('savingsGoalId', v);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get savings goal",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/savings-goals/{{savingsGoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "savings-goals",
+                    "{{savingsGoalId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update savings goal",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/savings-goals/{{savingsGoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "savings-goals",
+                    "{{savingsGoalId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"savedAmount\": 70000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Send any subset of the fields, e.g. just savedAmount to top up."
+              }
+            },
+            {
+              "name": "Delete savings goal",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/savings-goals/{{savingsGoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "savings-goals",
+                    "{{savingsGoalId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settings",
+          "item": [
+            {
+              "name": "Get settings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/settings",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "settings"
+                  ]
+                },
+                "description": "Returns dailySpendCap, monthBudget, and the derived monthSpent / daysLeftInMonth."
+              }
+            },
+            {
+              "name": "Set daily spend cap",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/settings/daily-cap",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "settings",
+                    "daily-cap"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dailySpendCap\": 500\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update settings (cap / month budget)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/settings",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "settings"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dailySpendCap\": 500,\n  \"monthBudget\": 11400\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "The only way to set monthBudget. Both fields are optional."
+              }
+            },
+            {
+              "name": "Month summary",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/finance/summary?month=2026-09",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "finance",
+                    "summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "month",
+                      "value": "2026-09"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
